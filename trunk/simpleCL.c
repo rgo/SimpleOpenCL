@@ -203,6 +203,9 @@ char* _sclLoadProgramSource( const char *filename )
 	if( fread( source, statbuf.st_size, 1, fh ) != 1 ) {
 		fprintf(stderr,"Error on loadProgramSource");
 		sclPrintErrorFlags( CL_INVALID_PROGRAM );
+        free(source);
+        fclose(fh);
+        return NULL;
 	}
 
 	source[ statbuf.st_size ] = '\0';
