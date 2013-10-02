@@ -553,7 +553,7 @@ sclHard* sclGetAllHardware( int* found ) {
 
 	err = clGetPlatformIDs( 8, platforms, &nPlatforms );
 	if ( nPlatforms == 0 ) {
-		fprintf(stderr,"\nNo OpenCL plantforms found.\n");
+		fprintf(stderr,"\nNo OpenCL platforms found.\n");
 	}
 	else {
 		
