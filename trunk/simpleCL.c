@@ -715,55 +715,58 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 
 	*found = 1;
 	platforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
-	CPUplatforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
-	platformName = (char *)malloc( sizeof(char) * 30 );
-	devices = (cl_device_id *)malloc( sizeof(cl_device_id) * 8 );
+
 	/*Get platform info ###################################################### */
 	err = clGetPlatformIDs( 8, platforms, &nPlatforms );
-	/*fprintf( stdout, "\n Number of platforms found: %d \n",nPlatforms);*/
 	/* ###################################################### */
-
 
 	if ( nPlatforms == 0 ) {
 		fprintf( stderr, "\nNo OpenCL platforms found.\n");
 		*found = 0;
+
+		free(platforms);
+
+		return hardware;
+	}
+
+	CPUplatforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
+	platformName = (char *)malloc( sizeof(char) * 30 );
+	devices = (cl_device_id *)malloc( sizeof(cl_device_id) * 8 );
+
+
+	for ( i = 0; i < (int)nPlatforms; ++i ) {
+		err = clGetDeviceIDs( platforms[i], CL_DEVICE_TYPE_CPU, 8, devices + nTotalDevs, &nDevices );
+		/*if ( err != CL_SUCCESS ) {
+			fprintf( stderr,  "\nError clGetDeviceIDs" );
+			sclPrintErrorFlags( err ); }*/
+		nTotalDevs += (int)nDevices;	
+		if ( nDevices > 0 ) {
+			CPUplatforms[nCPUplatforms] = platforms[i];
+			nCPUplatforms++; 
+		}  
+	}
+	if ( nCPUplatforms == 0 ) {
+		fprintf( stderr, "\nNo OpenCL enabled CPU found.\n");
+		*found = 0;
+
+		free(platforms);
+		free(CPUplatforms);
+		free(platformName);
+		free(devices);
+
+		return hardware;
 	}
 	else {
-		for ( i = 0; i < (int)nPlatforms; ++i ) {
-			err = clGetDeviceIDs( platforms[i], CL_DEVICE_TYPE_CPU, 8, devices + nTotalDevs, &nDevices );
-			/*if ( err != CL_SUCCESS ) {
-				fprintf( stderr,  "\nError clGetDeviceIDs" );
-				sclPrintErrorFlags( err ); }*/
-			nTotalDevs += (int)nDevices;	
-			if ( nDevices > 0 ) {
-				CPUplatforms[nCPUplatforms] = platforms[i];
-				nCPUplatforms++; 
-			}  
-		}
-		if ( nCPUplatforms == 0 ) {
-			fprintf( stderr, "\nNo OpenCL enabled CPU found.\n");
-			*found = 0;
-
-			free(platforms);
-			free(CPUplatforms);
-			free(platformName);
-			free(devices);
-
-			return hardware;
-		}
-		else {
-			if ( nCPUplatforms > 1 ) {
-				err = clGetPlatformInfo ( CPUplatforms[0], CL_PLATFORM_VENDOR, (size_t)30, (void *)platformName, NULL);
-				if ( err != CL_SUCCESS ) {
-					fprintf( stderr,  "\nError clGetPlatformInfo" );
-					sclPrintErrorFlags( err ); 
-				}
-				fprintf( stdout, "\nMore than one OpenCL platform with enabled CPU's.\nUsing: %s", platformName );
+		if ( nCPUplatforms > 1 ) {
+			err = clGetPlatformInfo ( CPUplatforms[0], CL_PLATFORM_VENDOR, (size_t)30, (void *)platformName, NULL);
+			if ( err != CL_SUCCESS ) {
+				fprintf( stderr,  "\nError clGetPlatformInfo" );
+				sclPrintErrorFlags( err ); 
 			}
-			hardware.platform = CPUplatforms[0];
-			hardware.device = devices[nDevice];
+			fprintf( stdout, "\nMore than one OpenCL platform with enabled CPU's.\nUsing: %s", platformName );
 		}
-
+		hardware.platform = CPUplatforms[0];
+		hardware.device = devices[nDevice];
 	}
 
 	vendor_name[0] = '\0';
@@ -779,23 +782,22 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 
 	fprintf( stdout, "\nUsing device vendor: %s\nDevice name: %s\n",vendor_name,device_name);
 
-	if ( *found ) {
-		/* Create context ########################################################### */
-		hardware.device = devices[nDevice];
-		hardware.context = clCreateContext( 0, 1, &hardware.device, NULL, NULL, &err );
-		if ( err != CL_SUCCESS) {
-			fprintf( stderr,  "\nError 3" );
-			sclPrintErrorFlags( err ); }
-		/* ########################################################### */
-
-		/* Create command queue ########################################################### */	
-		hardware.queue = clCreateCommandQueue( hardware.context, hardware.device, CL_QUEUE_PROFILING_ENABLE, &err );
-		if ( err != CL_SUCCESS ) {
-			fprintf( stderr,  "\nError 3.1" );
-			sclPrintErrorFlags( err ); }
-		/* ########################################################### */	
-
+	/* Create context ########################################################### */
+	hardware.device = devices[nDevice];
+	hardware.context = clCreateContext( 0, 1, &hardware.device, NULL, NULL, &err );
+	if ( err != CL_SUCCESS) {
+		fprintf( stderr,  "\nError 3" );
+		sclPrintErrorFlags( err );
 	}
+	/* ########################################################### */
+
+	/* Create command queue ########################################################### */	
+	hardware.queue = clCreateCommandQueue( hardware.context, hardware.device, CL_QUEUE_PROFILING_ENABLE, &err );
+	if ( err != CL_SUCCESS ) {
+		fprintf( stderr,  "\nError 3.1" );
+		sclPrintErrorFlags( err );
+	}
+	/* ########################################################### */	
 
 	free(platforms);
 	free(CPUplatforms);
