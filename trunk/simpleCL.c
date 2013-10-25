@@ -743,6 +743,13 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 		if ( nCPUplatforms == 0 ) {
 			fprintf( stderr, "\nNo OpenCL enabled CPU found.\n");
 			*found = 0;
+
+			free(platforms);
+			free(CPUplatforms);
+			free(platformName);
+			free(devices);
+
+			return hardware;
 		}
 		else {
 			if ( nCPUplatforms > 1 ) {
