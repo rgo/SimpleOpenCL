@@ -58,6 +58,8 @@ typedef struct {
 	cl_kernel kernel;
 	char kernelName[98];	
 }sclSoft;
+
+extern sclHard* _sclHardList;
 #define _OCLUTILS_STRUCTS
 #endif
 

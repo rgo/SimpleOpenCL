@@ -27,6 +27,8 @@ extern "C" {
 
 #include "simpleCL.h"
 
+sclHard* _sclHardList = NULL;
+
 void sclPrintErrorFlags( cl_int flag ){
     
 	switch (flag){
@@ -537,7 +539,6 @@ sclHard* sclGetAllHardware( int* found ) {
 	int i, j; 
 	cl_uint nPlatforms=0, nDevices=0;
 	char* platformName;
-	sclHard* hardList;
 	
 	*found=0;
 
@@ -545,11 +546,11 @@ sclHard* sclGetAllHardware( int* found ) {
 	cl_int err;
 	cl_device_id *devices;
 	
-	platforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
-	GPUplatforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
-	platformName = (char *)malloc( sizeof(char) * 30 );
-	devices = (cl_device_id *)malloc( sizeof(cl_device_id) * 16 );
-	hardList = (sclHard*)malloc( 16*sizeof(sclHard) );
+	platforms    = (cl_platform_id *) malloc( sizeof(cl_platform_id) * 8 );
+	GPUplatforms = (cl_platform_id *) malloc( sizeof(cl_platform_id) * 8 );
+	platformName = (char *)           malloc( sizeof(char) * 30 );
+	devices      = (cl_device_id *)   malloc( sizeof(cl_device_id) * 16 );
+	_sclHardList = (sclHard*)         malloc( 16*sizeof(sclHard) );
 
 	err = clGetPlatformIDs( 8, platforms, &nPlatforms );
 	if ( nPlatforms == 0 ) {
@@ -569,25 +570,25 @@ sclHard* sclGetAllHardware( int* found ) {
 			else {
 				for ( j = 0; j < (int)nDevices; ++j ) {
 					
-					hardList[ *found ].platform       = platforms[ i ];
-					hardList[ *found ].device         = devices[ j ];
-					hardList[ *found ].nComputeUnits  = _sclGetMaxComputeUnits( hardList[ *found ].device );
-					hardList[ *found ].maxPointerSize = _sclGetMaxMemAllocSize( hardList[ *found ].device );				
-					hardList[ *found ].deviceType     = _sclGetDeviceType( hardList[ *found ].device );
-					hardList[ *found ].devNum         = *found;
+					_sclHardList[ *found ].platform       = platforms[ i ];
+					_sclHardList[ *found ].device         = devices[ j ];
+					_sclHardList[ *found ].nComputeUnits  = _sclGetMaxComputeUnits( _sclHardList[ *found ].device );
+					_sclHardList[ *found ].maxPointerSize = _sclGetMaxMemAllocSize( _sclHardList[ *found ].device );
+					_sclHardList[ *found ].deviceType     = _sclGetDeviceType( _sclHardList[ *found ].device );
+					_sclHardList[ *found ].devNum         = *found;
 					(*found)++;
 				}
 			}
 		}
-		_sclSmartCreateContexts( hardList, *found );
-		_sclCreateQueues( hardList, *found );
+		_sclSmartCreateContexts( _sclHardList, *found );
+		_sclCreateQueues( _sclHardList, *found );
 	}
 #ifdef DEBUG
-	sclPrintDeviceNamePlatforms( hardList, *found );
+	sclPrintDeviceNamePlatforms( _sclHardList, *found );
 #endif
-	sclRetainAllHardware( hardList, *found );
+	sclRetainAllHardware( _sclHardList, *found );
 	
-	return hardList;
+	return _sclHardList;
 
 }
 
