@@ -621,17 +621,6 @@ sclHard sclGetGPUHardware( int nDevice, int* found ) {
 		fprintf( stderr, "\nNo OpenCL platforms found.\n");
 		*found = 0;
 	}
-	else if ( nPlatforms == 1 ) {
-		hardware.platform = platforms[0];
-		err = clGetDeviceIDs( hardware.platform, CL_DEVICE_TYPE_GPU, 8, devices, &nDevices );
-		/*if ( err != CL_SUCCESS ) {
-			fprintf( stderr,  "\nError clGetDeviceIDs" );
-			sclPrintErrorFlags( err ); }*/
-		if ( nDevices == 0 ) {
-			fprintf( stderr, "\nNo OpenCL enabled GPU found.\n");
-			*found = 0;
-		}
-	}
 	else {
 		for ( i = 0; i < (int)nPlatforms; ++i ) {
 			err = clGetDeviceIDs( platforms[i], CL_DEVICE_TYPE_GPU, 8, devices + nTotalDevs, &nDevices );
@@ -737,17 +726,6 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 	if ( nPlatforms == 0 ) {
 		fprintf( stderr, "\nNo OpenCL platforms found.\n");
 		*found = 0;
-	}
-	else if ( nPlatforms == 1 ) {
-		hardware.platform = platforms[0];
-		err = clGetDeviceIDs( hardware.platform, CL_DEVICE_TYPE_CPU, 8, devices, &nDevices );
-		if ( err != CL_SUCCESS ) {
-			fprintf( stderr,  "\nError clGetDeviceIDs" );
-			sclPrintErrorFlags( err ); }
-		if ( nDevices == 0 ) {
-			fprintf( stderr, "\nNo OpenCL enabled CPU found.\n");
-			*found = 0;
-		}
 	}
 	else {
 		for ( i = 0; i < (int)nPlatforms; ++i ) {
