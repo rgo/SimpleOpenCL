@@ -744,16 +744,15 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 			fprintf( stderr, "\nNo OpenCL enabled CPU found.\n");
 			*found = 0;
 		}
-		else if ( nCPUplatforms == 1 ) {
-			hardware.platform = CPUplatforms[0];
-			hardware.device = devices[nDevice];
-		}
 		else {
-			err = clGetPlatformInfo ( CPUplatforms[0], CL_PLATFORM_VENDOR, (size_t)30, (void *)platformName, NULL);
-			if ( err != CL_SUCCESS ) {
-				fprintf( stderr,  "\nError clGetPlatformInfo" );
-				sclPrintErrorFlags( err ); }
-			fprintf( stdout, "\nMore than one OpenCL platform with enabled CPU's.\nUsing: %s", platformName );
+			if ( nCPUplatforms > 1 ) {
+				err = clGetPlatformInfo ( CPUplatforms[0], CL_PLATFORM_VENDOR, (size_t)30, (void *)platformName, NULL);
+				if ( err != CL_SUCCESS ) {
+					fprintf( stderr,  "\nError clGetPlatformInfo" );
+					sclPrintErrorFlags( err ); 
+				}
+				fprintf( stdout, "\nMore than one OpenCL platform with enabled CPU's.\nUsing: %s", platformName );
+			}
 			hardware.platform = CPUplatforms[0];
 			hardware.device = devices[nDevice];
 		}
