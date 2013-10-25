@@ -759,25 +759,19 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 
 	}
 
-	/*fprintf( stdout, "\nNumber of devices found: %d \n",nDevices);*/
-	for ( i = 0; i < (int)nTotalDevs; ++i ) {
-		/*fprintf( stdout, "\nDevice %d id: %d\n",i+1,(int)(devices[i]));*/
-		if ( i == nDevice ) {
-			returned_size = 0;
+	vendor_name[0] = '\0';
+	device_name[0] = '\0';
 
-			vendor_name[0] = '\0';
-			device_name[0] = '\0';
+	err  = clGetDeviceInfo( devices[nDevice], CL_DEVICE_VENDOR, sizeof(vendor_name), vendor_name, NULL );
+	err |= clGetDeviceInfo( devices[nDevice], CL_DEVICE_NAME, sizeof(device_name), device_name, NULL );
 
-			err  = clGetDeviceInfo( devices[i], CL_DEVICE_VENDOR, sizeof(vendor_name), vendor_name, &returned_size );
-			err |= clGetDeviceInfo( devices[i], CL_DEVICE_NAME, sizeof(device_name), device_name, &returned_size );
-
-			if ( err != CL_SUCCESS ) {
-				fprintf( stderr,  "\nError 2" );
-				sclPrintErrorFlags( err ); }
-
-			fprintf( stdout, "\nUsing device vendor: %s\nDevice name: %s\n",vendor_name,device_name);
-		}
+	if ( err != CL_SUCCESS ) {
+		fprintf( stderr,  "\nError 2" );
+		sclPrintErrorFlags( err );
 	}
+
+	fprintf( stdout, "\nUsing device vendor: %s\nDevice name: %s\n",vendor_name,device_name);
+
 	if ( *found ) {
 		/* Create context ########################################################### */
 		hardware.device = devices[nDevice];
@@ -795,6 +789,7 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 		/* ########################################################### */	
 
 	}
+
 	free(platforms);
 	free(CPUplatforms);
 	free(platformName);
