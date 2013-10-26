@@ -728,8 +728,6 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 		goto cleanup_and_exit;
 	}
 
-
-
 	for ( i = 0; i < (int)nPlatforms; ++i ) {
 		err = clGetDeviceIDs( platforms[i], CL_DEVICE_TYPE_CPU, 8, devices + nTotalDevs, &nDevices );
 		/*if ( err != CL_SUCCESS ) {
