@@ -772,8 +772,8 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 	vendor_name[0] = '\0';
 	device_name[0] = '\0';
 
-	err  = clGetDeviceInfo( devices[nDevice], CL_DEVICE_VENDOR, sizeof(vendor_name), vendor_name, NULL );
-	err |= clGetDeviceInfo( devices[nDevice], CL_DEVICE_NAME, sizeof(device_name), device_name, NULL );
+	err = (clGetDeviceInfo( devices[nDevice], CL_DEVICE_VENDOR, sizeof(vendor_name), vendor_name, NULL )
+			 ||clGetDeviceInfo( devices[nDevice], CL_DEVICE_NAME, sizeof(device_name), device_name, NULL ));
 
 	if ( err != CL_SUCCESS ) {
 		fprintf( stderr,  "\nError 2" );
