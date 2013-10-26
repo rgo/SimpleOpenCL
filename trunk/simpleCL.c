@@ -27,7 +27,8 @@ extern "C" {
 
 #include "simpleCL.h"
 
-sclHard* _sclHardList = NULL;
+sclHard* _sclHardList  = NULL;
+int _sclHardListLength = 0;
 
 void sclPrintErrorFlags( cl_int flag ){
     
@@ -580,6 +581,7 @@ sclHard* sclGetAllHardware( int* found ) {
 				}
 			}
 		}
+		_sclHardListLength = *found;
 		_sclSmartCreateContexts( _sclHardList, *found );
 		_sclCreateQueues( _sclHardList, *found );
 	}

@@ -60,6 +60,7 @@ typedef struct {
 }sclSoft;
 
 extern sclHard* _sclHardList;
+extern int _sclHardListLength;
 #define _OCLUTILS_STRUCTS
 #endif
 
