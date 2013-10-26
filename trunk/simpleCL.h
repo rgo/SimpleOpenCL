@@ -49,9 +49,7 @@ typedef struct {
 	cl_command_queue queue;
 	int nComputeUnits;
 	unsigned long int maxPointerSize;
-	/* TODO: use the standard values of CL_DEVICE_TYPE family
-	 *			 they can be found at the headers									*/
-	int deviceType; /* deviceType 0 = GPU | deviceType 1 = CPU | deviceType 2 = other */
+	cl_device_type deviceType;
 	int devNum;
 }sclHard;
 typedef sclHard* ptsclHard;
@@ -161,11 +159,11 @@ char* 			_sclLoadProgramSource( const char *filename );
 
 /* ####### hardware management ############################ */
 
-int 			_sclGetMaxComputeUnits( cl_device_id device );
+int									_sclGetMaxComputeUnits( cl_device_id device );
 unsigned long int 	_sclGetMaxMemAllocSize( cl_device_id device );
-int 			_sclGetDeviceType( cl_device_id device );
-void 			_sclSmartCreateContexts( sclHard* hardList, int found );
-void 			_sclCreateQueues( sclHard* hardList, int found );
+cl_device_type 			_sclGetDeviceType( cl_device_id device );
+void					 			_sclSmartCreateContexts( sclHard* hardList, int found );
+void					 			_sclCreateQueues( sclHard* hardList, int found );
 
 /* ######################################################## */
 

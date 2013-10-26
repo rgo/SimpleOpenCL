@@ -503,22 +503,12 @@ unsigned long int _sclGetMaxMemAllocSize( cl_device_id device ){
 
 }
 
-int _sclGetDeviceType( cl_device_id device ) {
+cl_device_type _sclGetDeviceType( cl_device_id device ) {
+	cl_device_type dev_type;
+
+	clGetDeviceInfo(device,CL_DEVICE_TYPE,sizeof(dev_type),&dev_type,NULL);
 	
-	int out=2;
-	char var_queries[1024];
-
- 	clGetDeviceInfo( device, CL_DEVICE_TYPE, 1024, var_queries, NULL );
-	
-	if ( strcmp( var_queries, "CL_DEVICE_TYPE_GPU" ) == 0 ) {
-		out = 0;
-	}
-	else if ( strcmp( var_queries, "CL_DEVICE_TYPE_CPU" ) == 0 ) {
-		out = 1;
-	}
-
-	return out;
-
+	return dev_type;
 }
 
 sclHard sclGetFastestDevice( sclHard* hardList, int found ) {
@@ -699,77 +689,44 @@ sclHard sclGetGPUHardware( int nDevice, int* found ) {
 
 sclHard sclGetCPUHardware( int nDevice, int* found ) {
 
-	int i,nTotalDevs=0;
-	int nCPUplatforms=0;
-	cl_platform_id *CPUplatforms;
+	int i;
 	sclHard hardware;
 	cl_int err;
-	cl_uint nPlatforms, nDevices=0;
-	cl_platform_id *platforms;
-	cl_device_id *devices;
+	int nDevices=0;
 	cl_char vendor_name[1024];
 	cl_char device_name[1024];
-	char* platformName;
 
 	*found = 1;
-	platforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
-	CPUplatforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
-	platformName = (char *)malloc( sizeof(char) * 30 );
-	devices = (cl_device_id *)malloc( sizeof(cl_device_id) * 8 );
 
-	/*Get platform info ###################################################### */
-	err = clGetPlatformIDs( 8, platforms, &nPlatforms );
-	/* ###################################################### */
-
-	if ( nPlatforms == 0 ) {
-		fprintf( stderr, "\nNo OpenCL platforms found.\n");
-		*found = 0;
-
-		goto cleanup_and_exit;
+	for ( i = 0; i < _sclHardListLength; ++i ) {
+		if ( _sclHardList[i].deviceType == CL_DEVICE_TYPE_CPU ) {
+			nDevices++;
+			if ( nDevices-1 == nDevice ) {
+				hardware = _sclHardList[i];
+				break;
+			}
+		}
 	}
 
-	for ( i = 0; i < (int)nPlatforms; ++i ) {
-		err = clGetDeviceIDs( platforms[i], CL_DEVICE_TYPE_CPU, 8, devices + nTotalDevs, &nDevices );
-		/*if ( err != CL_SUCCESS ) {
-			fprintf( stderr,  "\nError clGetDeviceIDs" );
-			sclPrintErrorFlags( err ); }*/
-		nTotalDevs += (int)nDevices;	
-		if ( nDevices > 0 ) {
-			CPUplatforms[nCPUplatforms] = platforms[i];
-			nCPUplatforms++; 
-		}  
-	}
-
-	if ( nCPUplatforms == 0 ) {
+	if ( nDevices == 0 ) {
 		fprintf( stderr, "\nNo OpenCL enabled CPU found.\n");
 		*found = 0;
 
-		goto cleanup_and_exit;
+		return hardware;
 	}
 
-	if (nDevice >= nTotalDevs) {
+	if (nDevice >= nDevices) {
 		fprintf( stderr, "\nNo OpenCL device CPU found.\n");
 		*found = 0;
 
-		goto cleanup_and_exit;
+		return hardware;
 	}
-
-	if ( nCPUplatforms > 1 ) {
-		err = clGetPlatformInfo ( CPUplatforms[0], CL_PLATFORM_VENDOR, (size_t)30, (void *)platformName, NULL);
-		if ( err != CL_SUCCESS ) {
-			fprintf( stderr,  "\nError clGetPlatformInfo" );
-			sclPrintErrorFlags( err ); 
-		}
-		fprintf( stdout, "\nMore than one OpenCL platform with enabled CPU's.\nUsing: %s", platformName );
-	}
-	hardware.platform = CPUplatforms[0];
-	hardware.device = devices[nDevice];
 
 	vendor_name[0] = '\0';
 	device_name[0] = '\0';
 
-	err = (clGetDeviceInfo( devices[nDevice], CL_DEVICE_VENDOR, sizeof(vendor_name), vendor_name, NULL )
-			 ||clGetDeviceInfo( devices[nDevice], CL_DEVICE_NAME, sizeof(device_name), device_name, NULL ));
+	err = (clGetDeviceInfo( hardware.device, CL_DEVICE_VENDOR, sizeof(vendor_name), vendor_name, NULL )
+			 ||clGetDeviceInfo( hardware.device, CL_DEVICE_NAME, sizeof(device_name), device_name, NULL ));
 
 	if ( err != CL_SUCCESS ) {
 		fprintf( stderr,  "\nError 2" );
@@ -777,25 +734,6 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 	}
 
 	fprintf( stdout, "\nUsing device vendor: %s\nDevice name: %s\n",vendor_name,device_name);
-
-	/* Create context ########################################################### */
-	hardware.device = devices[nDevice];
-	hardware.context = clCreateContext( 0, 1, &hardware.device, NULL, NULL, &err );
-	if ( err != CL_SUCCESS) {
-		fprintf( stderr,  "\nError 3" );
-		sclPrintErrorFlags( err );
-	}
-	/* ########################################################### */
-
-	/* Create command queue ########################################################### */	
-	_sclCreateQueues(&hardware,1);
-	/* ########################################################### */	
-
-cleanup_and_exit:
-	free(platforms);
-	free(CPUplatforms);
-	free(platformName);
-	free(devices);
 
 	return hardware;
 }
@@ -955,7 +893,7 @@ void _sclWriteArgOnAFile( int argnum, void* arg, size_t size, const char* diff )
 	fclose(out);
 }
 
-inline void _sclVSetKernelArgs( sclSoft software, const char *sizesValues, va_list argList ) {
+ void _sclVSetKernelArgs( sclSoft software, const char *sizesValues, va_list argList ) {
 	const char *p;
 	int argCount = 0;
 	void* argument;
