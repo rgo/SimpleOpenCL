@@ -715,6 +715,9 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 
 	*found = 1;
 	platforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
+	CPUplatforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
+	platformName = (char *)malloc( sizeof(char) * 30 );
+	devices = (cl_device_id *)malloc( sizeof(cl_device_id) * 8 );
 
 	/*Get platform info ###################################################### */
 	err = clGetPlatformIDs( 8, platforms, &nPlatforms );
@@ -724,14 +727,9 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 		fprintf( stderr, "\nNo OpenCL platforms found.\n");
 		*found = 0;
 
-		free(platforms);
-
-		return hardware;
+		goto cleanup_and_exit;
 	}
 
-	CPUplatforms = (cl_platform_id *)malloc( sizeof(cl_platform_id) * 8 );
-	platformName = (char *)malloc( sizeof(char) * 30 );
-	devices = (cl_device_id *)malloc( sizeof(cl_device_id) * 8 );
 
 
 	for ( i = 0; i < (int)nPlatforms; ++i ) {
@@ -750,24 +748,14 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 		fprintf( stderr, "\nNo OpenCL enabled CPU found.\n");
 		*found = 0;
 
-		free(platforms);
-		free(CPUplatforms);
-		free(platformName);
-		free(devices);
-
-		return hardware;
+		goto cleanup_and_exit;
 	}
 
 	if (nDevice >= nTotalDevs) {
 		fprintf( stderr, "\nNo OpenCL device CPU found.\n");
 		*found = 0;
 
-		free(platforms);
-		free(CPUplatforms);
-		free(platformName);
-		free(devices);
-
-		return hardware;
+		goto cleanup_and_exit;
 	}
 
 	if ( nCPUplatforms > 1 ) {
@@ -811,6 +799,7 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 	}
 	/* ########################################################### */	
 
+cleanup_and_exit:
 	free(platforms);
 	free(CPUplatforms);
 	free(platformName);
