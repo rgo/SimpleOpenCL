@@ -49,6 +49,8 @@ typedef struct {
 	cl_command_queue queue;
 	int nComputeUnits;
 	unsigned long int maxPointerSize;
+	/* TODO: use the standard values of CL_DEVICE_TYPE family
+	 *			 they can be found at the headers									*/
 	int deviceType; /* deviceType 0 = GPU | deviceType 1 = CPU | deviceType 2 = other */
 	int devNum;
 }sclHard;
