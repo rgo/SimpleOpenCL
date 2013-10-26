@@ -792,11 +792,7 @@ sclHard sclGetCPUHardware( int nDevice, int* found ) {
 	/* ########################################################### */
 
 	/* Create command queue ########################################################### */	
-	hardware.queue = clCreateCommandQueue( hardware.context, hardware.device, CL_QUEUE_PROFILING_ENABLE, &err );
-	if ( err != CL_SUCCESS ) {
-		fprintf( stderr,  "\nError 3.1" );
-		sclPrintErrorFlags( err );
-	}
+	_sclCreateQueues(&hardware,1);
 	/* ########################################################### */	
 
 cleanup_and_exit:
